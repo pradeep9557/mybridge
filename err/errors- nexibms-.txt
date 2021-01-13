@@ -1,0 +1,38 @@
+====================
+Nexibms Errors
+====================
+
+1. http://tms.nexibms.in/tms/manage_tt_p_cat/insert_db  - 
+
+Message: Array to string conversion
+
+Filename: tms/manage_tt_p_cat.php
+
+Line Number: 48  ##Done#Ankit
+
+
+source: http://tms.nexibms.in/tms/manage_tt_p_cat on saving
+
+2. http://tms.nexibms.in/tms/manage_tt_p_cat/index/0/Task%20Category%20Updated!!
+
+Error: The URI you submitted has disallowed characters. ##Done##Ankit
+
+source: http://tms.nexibms.in/tms/manage_tt_p_cat (Edit Category Submit)
+
+3. Categories with Duplicate Code in List  ##Done##Deepak
+
+4. Error: Task Code must be more 3 characters long ( Incorrect message on entering long code)
+
+source: Task Category Code field - http://tms.nexibms.in/tms/manage_tt##Done##Ankit
+
+5. Save & next button not switching to next tab  ##workingfine##Ankit
+
+source: http://tms.nexibms.in/tms/manage_tt/index/create/71 (editing any sub category)
+
+6. disabled categories not showing in list, updating status to disabled removes it from list##
+
+source: http://tms.nexibms.in/tms/manage_tt/taskCatView 
+
+7. Sub Task - Please choose option from sub-task list: error even on choosing option
+
+source: http://tms.nexibms.in/tms/manage_tasks/index ##Done

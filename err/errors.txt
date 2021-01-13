@@ -1,0 +1,12 @@
+The following are further problems we are facing:
+1) We are unable to create user. The drop down is coming to be blank for user type which is already added by us.
+2) The task creation is also not working. The error is coming for the same. This issue has been send earlier in the previous mail.
+
+There are many other points which we need to discuss and for which we have been trying to call you but there have been no answer form your side.
+
+
+
+*****left tasks y dee******
+replica
+tab in mannage_tt
+ doc upload
