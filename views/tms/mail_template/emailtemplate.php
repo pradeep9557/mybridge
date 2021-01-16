@@ -1,5 +1,7 @@
 <link href="http://mybridge.local/font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 <script src="http://mybridge.local/js/jquery-1.11.0.js" type="text/javascript"></script>    
+<link href="<?= base_url() ?>js/sweetalert/lib/sweet-alert.css" rel="stylesheet" type="text/css"/>
+<script src="<?= base_url() ?>js/sweetalert/lib/sweet-alert.js" type="text/javascript"></script>
     <div style="font-family: verdana;margin: 0px;padding:0px;font-size: 13px;">
         <div id="page-wrapper" style="min-height: 0px;">
 
@@ -17,16 +19,23 @@
                     <div class="row bottom_gap">
                         <div class="col-lg-12 col-md-12 col-sm-12"> 
                             <div class="row">
+                            <input type="hidden" name="tm_code" value="<?php echo $tm_id;  ?>">
                                 <div class="col-lg-4 col-md-4 col-sm-8 attachmentdiv">
                                     <div class="form-group" id="attachment" style="width: 100%;float: left;">
-                                        <div style="width:50%; float:left;">
+                                        <div style="width:33%; float:left;">
                                             <input type="file" multiple="" name="attach_name[]">
                                         </div>
-                                        <div style="width:50%; float:right;">
-                                            <select name="fileType1">
+                                        <div style="width:33%; float:left;">
+                                            <select name="fileType[]">
+                                                <option value="">Select FileType</option>
+                                                <option value="Input file">Input file</option>
                                                 <option value="Working file">Working file</option>
-                                                <option value="File  Report">File  Report</option>
+                                                <option value="File  Report">Final Report</option>
                                             </select>
+                                            
+                                        </div>
+                                        <div style="width:33%; float:left;">
+                                            <input type="text" name="attach_desc[]">
                                             <i class="fa fa-plus addattachment" aria-hidden="true"></i>
                                         </div>
                                     </div>
@@ -48,7 +57,7 @@
             $('.addattachment').click(function(){
                 console.log($('#attachment').length);
                 var i=$('#attachment').length+1;
-                var html='<div class="form-group" id="attachment" style="width: 100%;float: left;"><div style="width:50%; float:left;"><input type="file" multiple name="attach_name[]"/></div><div style="width:50%; float:right;"><select name="fileType'+i+'"><option value="working file">Working file</option><option value="File  Report">File  Report</option></select></div></div>';
+                var html='<div class="form-group" id="attachment" style="width: 100%;float: left;"><div style="width:33%; float:left;"><input type="file" multiple name="attach_name[]"/></div><div style="width:33%; float:left;"><select name="fileType[]"><option value="">Select FileType</option><option value="input file">Input file</option><option value="working file">Working file</option><option value="File  Report">File  Report</option></select></div><div style="width:33%; float:left;"><input type="text" name="attach_desc[]"></div></div>';
                 $('.attachmentdiv').append(html);
             });
         });
@@ -65,9 +74,7 @@
                     method: "POST",
                     success: function (result) {
                         console.log(result);
-                        /*$("button").removeAttr("disabled");
                         if (result.succ) {
-                            $("#daily_task_form").trigger("reset");
                             swal({
                                 title: "Done!",
                                 text: result._err_codes,
@@ -77,7 +84,6 @@
                         } else {
                             sweetAlert("Oops...", result._err_codes, "error");
                         }
-                         preloader.off();*/
                     }
                 });
             });

@@ -255,7 +255,7 @@
 
             </div> 
             <div class="row bottom_gap">
-                <div class="col-lg-2 col-md-2 col-sm-4 padding_top_label">Show to Client</div>
+                <div class="col-lg-2 col-md-2 col-sm-4 padding_top_label">Show to Client<span class="Compulsory">*</span></div>
                 <div class="col-lg-4 col-md-4 col-sm-8">
                      
                     <div class="col-md-6 padding_0px">

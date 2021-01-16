@@ -18,7 +18,67 @@ $selected = isset($_GET['status'])?$_GET['status']:0;
 <script src="<?php echo base_url() ?>js/multi_select/chosen.jquery.js" type="text/javascript"></script>
 <script src="<?php echo base_url() ?>js/multi_select/prism.js" type="text/javascript"></script>
 <!-- /.row -->
+<style>
+.container1 {
+                                                    width: 100%;
+                                                    height: 100%;
+                                                    position: absolute;
+                                                    visibility:hidden;
+                                                    display:none;
+                                                    /*background-color: rgba(22,22,22,0.5);*/
+                                                }
 
+                                                .container1:target {
+                                                    visibility: visible;
+                                                    display: block;
+                                                }
+
+                                                .reveal-modal select {
+    max-width: 900px;
+    margin-bottom: 23px;
+} 
+
+    .reveal-modal {
+        background:#fff; 
+        margin: 0 auto;
+        width:1000px; 
+        position:relative; 
+        z-index:41;
+        top: 25%;
+        padding:30px; 
+        -webkit-box-shadow:0 0 10px rgba(0,0,0,0.4);
+        -moz-box-shadow:0 0 10px rgba(0,0,0,0.4); 
+        box-shadow:0 0 10px rgba(0,0,0,0.4);
+    }
+</style>
+<?php 
+    //foreach ($locality_list as $List) {
+        ?>
+        <form name="form">
+            <div id="container" class="container1">
+                <div id="exampleModal" class="reveal-modal">
+                    <h2>Change Task</h2>
+                    <input type="hidden" id="attachid" name="attachid" value="">
+                    <select id="clientlist" name="clientlist">
+                        <?php 
+                        foreach ($clientlist as $key1 => $value1) {
+                            ?>
+                            <option value="<?php echo $value1['tstm_id'];?>"><?php echo $value1['tstm_name'];?>(<?php echo $value1['tm_name'];?>)</option>
+                            <?php
+                        }
+                        ?>
+                    </select>
+                    <button name="submit1" class="changeattach" value="">Submit</button>
+                    <a href="#" class="close-reveal-modal" style="
+                        position: absolute;
+                        top: 6px;
+                        right: 10px;">×</a>
+                </div>
+            </div>
+        </form>
+        <?php
+   // }
+?>
 <div class="row">
 
     <div class="col-md-2"></div>
@@ -110,7 +170,9 @@ $selected = isset($_GET['status'])?$_GET['status']:0;
 
                                 <td><?= $List['date'] ?></td>
                                 <!-- <td><?= $date[0] ?></td> -->
-                                <td><a href="<?php echo $List['link']; ?>"><?= $List['file'] ?></a></td>
+                                <td><a href="<?php echo base_url($List['link']); ?>"><?= $List['file'] ?></a>
+                                <a class="updatekey" href="#container" data-reveal-id="exampleModal" key="<?php echo $List['id'] ?>"><span class='glyphicon glyphicon-pencil del_attachment  text-danger' key="<?php echo $List['id'] ?>" doc_link="<?php echo $List['link'] ?>"></span></a>
+                                </td>
                                 <td><?= $List['Task']['year'] ?></td>
                                 <td><?= $List['Task']['month'] ?></td>
                                 <td><button class="btn btn-info editfile" data-id="<?= $List['id'] ?>" data-tm="<?= $List['tm_id'] ?>">Edit</button></td>
@@ -240,7 +302,31 @@ $('.editfile').on("click", function() {
     tmid = $(this).data().tm;
     $('#myattach').modal('show');
 });
+$('.updatekey').click(function(){
+    $('#attachid').val($(this).attr('key'));
+});
+$('.changeattach').click(function(e){
+    e.preventDefault();
+    var id=$(this).val();
+    var clientlist=$('#clientlist'+id).val();
+    var attachid=$('#attachid'+id).val();
+    console.log("clientid=" + clientlist + "&attachid=" + attachid);
+    $.ajax({
+        type: "POST",
+        url: get_base_url() + "tms/daily_task/update_attachment_main",
+        data: "clientid=" + clientlist + "&attachid=" + attachid,
+        dataType: "json",
+        success: function (result) {
+            if (result['success']) {
+                swal("Updated!", result['_err_msg'], "success");
+            } else {
+                swal("Cancelled", result['_err_msg'], "error");
 
+            }
+            $('.container1').hide();
+        }
+    });
+});
 $("#exampleInputFile").on("change", function() {
     show_loading();
     var file = document.getElementById("exampleInputFile").files[0];

@@ -131,6 +131,26 @@ class daily_task extends CI_controller {
         $query = $this->db->query($sql);
         echo json_encode(array("success" => TRUE,"_err_msg"=> 'Attachment Updated'));
     }
+    public function update_attachment_main(){
+        $formdata = $this->input->post();
+        //print_r($formdata);
+        $sql = "SELECT attachment_id FROM " . DB_PREFIX . "attach_file WHERE id='{$formdata['attachid']}'";
+        $query = $this->db->query($sql);
+        $attachresult = $query->result('array');
+        //print_r($attachresult);
+        $sql = "SELECT tm_id FROM " . DB_PREFIX . "task_sub_task WHERE tstm_id='{$formdata['clientid']}'";
+        $query = $this->db->query($sql);
+        $result = $query->result('array');
+        if($result[0]['tm_id']!='' && $result[0]['tm_id']!='0'){
+            $sql = "Update " . DB_PREFIX . "attach_file set tm_id='{$result[0]['tm_id']}' WHERE id='{$formdata['attachid']}'";
+            $query = $this->db->query($sql);
+        }
+        if($attachresult[0]['attachment_id']!=''){
+            $sql = "Update " . DB_PREFIX . "task_attachments set table_id='{$formdata['clientid']}' WHERE attach_id='{$attachresult[0]['attachment_id']}'";
+            $query = $this->db->query($sql);
+        }
+        echo json_encode(array("success" => TRUE,"_err_msg"=> 'Attachment Updated'));
+    }
 
     /* funciton punch_daily_entry
      * saves the data in the datatbase
@@ -188,13 +208,18 @@ class daily_task extends CI_controller {
                 // echo "/uploads/" . $formdata['tm_code']."/".$formdata['ttm_id']."/".$formdata['year']."/".$formdata['month']; exit;
                 mkdir(SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] , 0777, true);
             }
+            if (!file_exists(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] )) {
+
+                // echo "/uploads/" . $formdata['tm_code']."/".$formdata['ttm_id']."/".$formdata['year']."/".$formdata['month']; exit;
+                mkdir(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] , 0777, true);
+            }
 
             // if (!file_exists(SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'])) {
             //     mkdir(SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'], 0777, true);
             // }
 //            echo SITE_ROOT_PATH . "/uploads/".$upload_details['tm_code'];
            // $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'];
-           $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'];
+            $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'];
             $config['allowed_types'] = 'pdf|png|jpg|gif|jpeg|xls|docs|doc|txt|xlsx|docx';
             $config['max_size'] = '20480'; // 20MB allowed
             $this->load->library('upload', $config);
@@ -209,6 +234,8 @@ class daily_task extends CI_controller {
                     }
                     $uploaded_data[$i]['attach_original_name'] = $_FILES['attach_name']['name'][$i];
                     $file_name = str_replace(" ", "", $upload_details['tm_code']) . "_" . $upload_details['tstm_id'] . "_" . rand(100, 99999) . "." . pathinfo($_FILES['attach_name']['name'][$i], PATHINFO_EXTENSION);
+                    $source = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$file_name;
+                    $destination = SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$file_name;
                     $_FILES['temp_document_path']['name'] = $file_name;
                     $_FILES['temp_document_path']['type'] = $_FILES['attach_name']['type'][$i];
                     $_FILES['temp_document_path']['tmp_name'] = $_FILES['attach_name']['tmp_name'][$i];
@@ -220,8 +247,10 @@ class daily_task extends CI_controller {
                         echo json_encode(array("succ" => FALSE, "_err_codes" => array($this->upload->display_errors("", ""))));
                         die();
                     }
+                    copy($source, $destination);
                     $uploaded_data[$i]['attach_name'] = $file_name;
-                    $uploaded_data[$i]['link'] = "uploads/" . $upload_details['tm_code'] . "/" . $file_name;
+                    //$uploaded_data[$i]['link'] = "uploads/" . $upload_details['tm_code'] . "/" . $file_name;
+                    $uploaded_data[$i]['link'] = "tempuploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$file_name;
                     $uploaded_data[$i]['table_id'] = $inserted_id['id'];
                     $uploaded_data[$i]['file_type'] = $formdata['fileType'.$j];
                     $uploaded_data[$i] = $this->util_model->add_common_fields($uploaded_data[$i]); 
@@ -394,11 +423,17 @@ class daily_task extends CI_controller {
                 echo json_encode($updated_id);
                 die();
             }
+            $data = $this->employee_model->get__subtask_record($formdata['tstm_id'], $formdata['client_id']);
 
-            if (!file_exists(SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'])) {
-                mkdir(SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'], 0777, true);
+            if (!file_exists(SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'])) {
+                mkdir(SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'], 0777, true);
             }
-            $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'];
+
+            if (!file_exists(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'])) {
+                mkdir(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'], 0777, true);
+            }
+
+            $config['upload_path'] = SITE_ROOT_PATH . "/uploads/"  . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'];
             $config['allowed_types'] = 'jpg|png|pdf|doc|docx|xlsx|xls';
             $config['max_size'] = '5120'; // 5MB allowed
             $this->load->library('upload', $config);
@@ -413,6 +448,8 @@ class daily_task extends CI_controller {
                     }
                     $uploaded_data[$i]['attach_original_name'] = $_FILES['attach_name']['name'][$i];
                     $file_name = str_replace(" ", "", $upload_details['tm_code']) . "_" . $upload_details['tstm_id'] . "_" . rand(100, 99999) . "_" . $_FILES['attach_name']['name'][$i];
+                    $source = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$file_name;
+                    $destination = SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$file_name;
                     $_FILES['temp_document_path']['name'] = $file_name;
                     $_FILES['temp_document_path']['type'] = $_FILES['attach_name']['type'][$i];
                     $_FILES['temp_document_path']['tmp_name'] = $_FILES['attach_name']['tmp_name'][$i];
@@ -424,6 +461,7 @@ class daily_task extends CI_controller {
                         echo json_encode(array("succ" => FALSE, "_err_codes" => array("Error in uploading Files!")));
                         die();
                     }
+                    copy($source, $destination);    
                     $uploaded_data[$i]['attach_name'] = $file_name;
                     $uploaded_data[$i]['link'] = "uploads/" . $upload_details['tm_code'] . "/" . $file_name;
                     $uploaded_data[$i]['table_id'] = $formdata['comment_id'];

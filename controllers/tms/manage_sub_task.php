@@ -298,6 +298,9 @@ class manage_sub_task extends CI_Controller {
             if (!file_exists(SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'])) {
                 mkdir(SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'], 0777, true);
             }
+            if (!file_exists(SITE_ROOT_PATH . "/tempuploads/" . $upload_details['tm_code'])) {
+                mkdir(SITE_ROOT_PATH . "/tempuploads/" . $upload_details['tm_code'], 0777, true);
+            }
             $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'];
             $config['allowed_types'] = 'jpg|png|pdf|doc|docx|xlsx|xls';
             $config['max_size'] = '5120'; // 5MB allowed
@@ -311,7 +314,8 @@ class manage_sub_task extends CI_Controller {
                     }
                     $uploaded_data[$i]['attach_original_name'] = $_FILES['attach_name']['name'][$i];
                     $file_name = str_replace(" ", "", $upload_details['tm_code']) . "_" . $upload_details['tstm_id'] . "_" . rand(100, 99999) . "." . pathinfo($_FILES['attach_name']['name'][$i], PATHINFO_EXTENSION);
-
+                    $source = SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'].'/'.$file_name;
+                    $destination = SITE_ROOT_PATH . "/tempuploads/" . $upload_details['tm_code'].'/'.$file_name;
                     $_FILES['temp_document_path']['name'] = $file_name;
                     $_FILES['temp_document_path']['type'] = $_FILES['attach_name']['type'][$i];
                     $_FILES['temp_document_path']['tmp_name'] = $_FILES['attach_name']['tmp_name'][$i];
@@ -322,7 +326,7 @@ class manage_sub_task extends CI_Controller {
                         echo json_encode(array("succ" => FALSE, "_err_codes" => array(strip_tags($this->upload->display_errors()))));
                         die();
                     }
-
+                    copy($source, $destination);    
                     $uploaded_data[$i]['attach_name'] = $file_name;
                     $uploaded_data[$i]['link'] = "uploads/" . $upload_details['tm_code'] . "/" . $file_name;
                     $uploaded_data[$i]['table_id'] = $inserted_id['id'];
@@ -422,6 +426,9 @@ class manage_sub_task extends CI_Controller {
         if (!file_exists(SITE_ROOT_PATH . "/uploads/" . $formdata['tm_code'])) {
             mkdir(SITE_ROOT_PATH . "/uploads/" . $formdata['tm_code'], 0777, true);
         }
+        if (!file_exists(SITE_ROOT_PATH . "/tempuploads/" . $formdata['tm_code'])) {
+            mkdir(SITE_ROOT_PATH . "/tempuploads/" . $formdata['tm_code'], 0777, true);
+        }
         $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $formdata['tm_code'];
         $config['allowed_types'] = 'jpg|png|pdf|doc|docx|xlsx|xls';
         $config['max_size'] = '5120'; // 5MB allowed
@@ -443,7 +450,8 @@ class manage_sub_task extends CI_Controller {
                 // print_r($upload_details);
                 $uploaded_data[$i]['attach_original_name'] = $_FILES['file']['name'];
                 $file_name = str_replace(" ", "", $upload_details['tm_code']) . "_" . $upload_details['tstm_id'] . "_" . rand(100, 99999) . "." . pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
-
+                $source = SITE_ROOT_PATH . "/uploads/" . $upload_details['tm_code'].'/'.$file_name;
+                $destination = SITE_ROOT_PATH . "/tempuploads/" . $upload_details['tm_code'].'/'.$file_name;
                 $_FILES['temp_document_path']['name'] = $file_name;
                 $_FILES['temp_document_path']['type'] = $_FILES['file']['type'];
                 $_FILES['temp_document_path']['tmp_name'] = $_FILES['file']['tmp_name'];
@@ -457,9 +465,9 @@ class manage_sub_task extends CI_Controller {
                     echo $this->upload->display_errors();
                     die();
                 }
-
+                copy($source, $destination);    
                 $uploaded_data[$i]['attach_name'] = $file_name;
-                $uploaded_data[$i]['link'] = "uploads/" . $upload_details['tm_code'] . "/" . $file_name;
+                $uploaded_data[$i]['link'] = "tempuploads/" . $upload_details['tm_code'] . "/" . $file_name;
                 $uploaded_data[$i]['table_id'] = $upload_details['tstm_id'];
                 $uploaded_data[$i]['attach_type'] = 2;
                 $uploaded_data[$i] = $this->util_model->add_common_fields($uploaded_data[$i]);

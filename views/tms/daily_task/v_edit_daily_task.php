@@ -27,10 +27,14 @@
                                                     visibility: visible;
                                                     display: block;
                                                 }
-                                                .reveal-modal {
+                                                .reveal-modal select {
+                                                    max-width: 900px;
+                                                    margin-bottom: 23px;
+                                                }
+                                                .reveal-modal { 
                                                     background:#fff; 
                                                     margin: 0 auto;
-                                                    width:160px; 
+                                                    width:1000px; 
                                                     position:relative; 
                                                     z-index:41;
                                                     top: 25%;
@@ -60,7 +64,11 @@
                                                                     ?>
                                                                     </select>
                                                                     <button name="submit1" class="changeattach" value="<?php echo $each_doc['attach_id'];?>">Submit</button>
-                                                                    <a href="#" class="close-reveal-modal">×</a>
+                                                                    <a href="#" class="close-reveal-modal" style="
+    position: absolute;
+    top: 6px;
+    right: 10px;
+">×</a>
                                                                 </div>
                                                             </div>
                                                             </form>

@@ -343,13 +343,21 @@ class auth extends CI_Controller {
             mkdir(SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'], 0777, true);
         }
 
+        if (!file_exists(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name']."/".$data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'])) {
+
+            // echo "/uploads/" . $formdata['tm_code']."/".$formdata['ttm_id']."/".$formdata['year']."/".$formdata['month']; exit;
+            mkdir(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'], 0777, true);
+        }
+
         $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] ;
-        $config['allowed_types'] = 'jpg|png|pdf|doc|docx|xlsx|xls';
+        $config['allowed_types'] = 'jpg|png|pdf|doc|docx|xlsx|xls|jpeg|ppt|pptx|zip|zar|txt';
         $config['max_size'] = '5120'; // 5MB allowed
         //   //  $config['max_width'] = 1500;
         //   //  $config['max_height'] = 1500;
 
         $this->load->library('upload', $config);
+        $source = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$filename;
+        $destination = SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$filename;
         $_FILES['temp_document_path']['name'] = $filename;
         $_FILES['temp_document_path']['type'] = $_FILES['myFile']['type'];
         $_FILES['temp_document_path']['tmp_name'] = $_FILES['myFile']['tmp_name'];
@@ -359,11 +367,12 @@ class auth extends CI_Controller {
         if (!$this->upload->do_upload('temp_document_path')) {
             $array = array('error' => $this->upload->display_errors(), 'status' => 500);
         } else {
+            copy($source, $destination);
             $arr = array(
                 'user_id' => $this->session->userdata('IBMS_USER_ID'),
                 'tm_id' => $id,
                 'file_name' => $filename,
-                'link' => "/uploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']  . "/" . $filename,
+                'link' => "/tempuploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']  . "/" . $filename,
                 'state_name' => $data['state'],
                 'date' => date('Y-m-d H:i:s'),
                 'status' => 0
@@ -397,11 +406,18 @@ class auth extends CI_Controller {
 
     public function approve() {
         $id = $this->input->post('id');
+        $this->db->where('id', $id);
+        $query = $this->db->get('nexgen_attach_file')->row();
+        $link =$query->link;
+        $link = str_replace("tempuploads","uploads",$query->link);
         $status = $this->input->post('status');
         $data = array(
             'id' => $id,
-            'status' => 1
+            'status' => 1,
+            'link' => $link
         );
+        //unlink(SITE_ROOT_PATH.$query->link);
+        unlink($query->link);
         $this->db->where('id', $id);
         $this->db->update('nexgen_attach_file', $data);
         if ($this->db->affected_rows() > 0) {
@@ -444,19 +460,26 @@ class auth extends CI_Controller {
         $filename =  date("Y-m-d")."_".$tm[0]."-".$tm[1]."-".$_FILES['myFile']['name'];
         $this->load->helper(array('form', 'url'));
         $data = $this->employee_model->get_record($tmid);
-        if (!file_exists(SITE_ROOT_PATH . "'/uploads/" . $data['clint_name'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] . "/" . $data['state'])) {
+        if (!file_exists(SITE_ROOT_PATH . "'/uploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'])) {
 
             // echo "/uploads/" . $formdata['tm_code']."/".$formdata['ttm_id']."/".$formdata['year']."/".$formdata['month']; exit;
-            mkdir(SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] . "/" . $data['state'], 0777, true);
+            mkdir(SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'], 0777, true);
+        }
+        if (!file_exists(SITE_ROOT_PATH . "'/tempuploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'])) {
+
+            // echo "/uploads/" . $formdata['tm_code']."/".$formdata['ttm_id']."/".$formdata['year']."/".$formdata['month']; exit;
+            mkdir(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'], 0777, true);
         }
 
-        $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] . "/" . $data['state'];
-        $config['allowed_types'] = 'jpg|png|pdf|doc|docx|xlsx|xls';
+        $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'];
+        $config['allowed_types'] = 'jpg|png|pdf|doc|docx|xlsx|xls|jpeg|ppt|pptx|zip|zar|txt';
         $config['max_size'] = '15360'; // 15MB allowed
         //   //  $config['max_width'] = 1500;
         //   //  $config['max_height'] = 1500;
 
         $this->load->library('upload', $config);
+        $source = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$filename;
+        $destination = SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$filename;
         $_FILES['temp_document_path']['name'] = trim($filename);
         $_FILES['temp_document_path']['type'] = $_FILES['myFile']['type'];
         $_FILES['temp_document_path']['tmp_name'] = $_FILES['myFile']['tmp_name'];
@@ -466,6 +489,7 @@ class auth extends CI_Controller {
         if (!$this->upload->do_upload('temp_document_path')) {
             $array = array('error' => $this->upload->display_errors(), 'status' => 500);
         } else {
+            copy($source, $destination);
             $arr = array(
                 'file_name' => trim($filename),
                 'link' => "/Api/mybridge_code/images/" . $data['clint_name'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] . "/" . $data['state'] . "/" . trim($filename),

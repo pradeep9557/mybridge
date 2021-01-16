@@ -67,8 +67,9 @@
                     </div>
                     <div style="width:50%; float:right;">
                         <select name="fileType1">
+                            <option value="Input file">Input file</option>
                             <option value="Working file">Working file</option>
-                            <option value="File  Report">File  Report</option>
+                            <option value="File  Report">Final  Report</option>
                         </select>
                         <i class="fa fa-plus addattachment" aria-hidden="true"></i>
                     </div>
@@ -208,7 +209,7 @@
         $('.addattachment').click(function(){
             console.log($('#attachment').length);
             var i=$('#attachment').length+1;
-            var html='<div class="form-group" id="attachment" style="width: 100%;float: left;"><div style="width:50%; float:left;"><input type="file" multiple name="attach_name[]"/></div><div style="width:50%; float:right;"><select name="fileType'+i+'"><option value="working file">Working file</option><option value="File  Report">File  Report</option></select></div></div>';
+            var html='<div class="form-group" id="attachment" style="width: 100%;float: left;"><div style="width:50%; float:left;"><input type="file" multiple name="attach_name[]"/></div><div style="width:50%; float:right;"><select name="fileType'+i+'"><option value="input file">Input file</option><option value="working file">Working file</option><option value="File  Report">File  Report</option></select></div></div>';
             $('.attachmentdiv').append(html);
         });
     });
