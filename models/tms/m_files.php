@@ -54,6 +54,7 @@ class m_files extends CI_Model {
                             'state_name' => '',
                             'date' => $value['Add_DateTime'],
                             'status' => 0,
+                            'attachment_id' => 0,
                         );
                         $this->db->insert('nexgen_attach_file', $arr);
                     }

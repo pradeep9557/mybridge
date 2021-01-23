@@ -375,7 +375,8 @@ class auth extends CI_Controller {
                 'link' => "/tempuploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']  . "/" . $filename,
                 'state_name' => $data['state'],
                 'date' => date('Y-m-d H:i:s'),
-                'status' => 0
+                'status' => 0,
+                'attachment_id' => 0,
             );
 
             $this->db->insert('nexgen_attach_file', $arr);

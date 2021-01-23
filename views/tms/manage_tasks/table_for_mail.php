@@ -1,7 +1,17 @@
+<link href="http://mybridge.local/font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+<script src="http://mybridge.local/js/jquery-1.11.0.js" type="text/javascript"></script>    
+<link href="<?= base_url() ?>js/sweetalert/lib/sweet-alert.css" rel="stylesheet" type="text/css"/>
+<script src="<?= base_url() ?>js/sweetalert/lib/sweet-alert.js" type="text/javascript"></script>
+<form action="http://mybridge.local/tms/manage_tasks/upload_files" id="daily_task_form" enctype="multipart/form-data" method="post" accept-charset="utf-8">
+    
 <?php
 $i = 1;
 foreach ($my_tasks as $value) {
+    //print_r($value);
     ?>
+    <input type="hidden" name="tm_code" value="<?php echo $value['tm_id'];  ?>">
+    <input type="hidden" name="client_id" value="<?php echo $value['client_id'];  ?>">
+    <input type="hidden" name="state_id" value="<?php echo $value['state_id'];  ?>">
     <table style="border: 1px solid #ddd;width: 100%;max-width: 100%;margin-bottom: 20px;">
         <tr>
             <th style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;" colspan="7">Main Task</th>
@@ -47,12 +57,16 @@ foreach ($my_tasks as $value) {
                         <th style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;">Start Date</th>
                         <th style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;">End Date</th>
                         <th style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;">Efforts</th>
+                        <?php if($landingPage){?>
+                        <th style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;">Upload Files</th>
+                        <?php } ?>
                     </tr>
                     <?php
                     $j = 1;
                     $total_efforts = 0;
                     foreach ($value['sub_task_data'] as $sub_task) {
                         $total_efforts += $sub_task['tstm_efforts'];
+                        $tstm_id = $sub_task['tstm_id'];
                         ?>
                         <tr>
                             <td style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;"><?= $j++ ?></td>
@@ -62,6 +76,19 @@ foreach ($my_tasks as $value) {
                             <td style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;"><?= date("F j, Y, g:i a", strtotime($sub_task['str_date_time'])) ?></td>
                             <td style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;"><?= date("F j, Y, g:i a", strtotime($sub_task['end_date_time'])) ?></td>
                             <td style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;"><?php echo $sub_task['tstm_efforts'] . " Hours" ?></td>
+                            <?php if($landingPage){?>
+                            <td style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;font-size: 12px;"><div style="width:50%; float:left;">
+                                            <input type="file" multiple="" name="attach_name[<?php echo $tstm_id;?>][]">
+                                        </div>
+                                        <div style="width:50%; float:left;">
+                                            <select name="fileType[<?php echo $tstm_id;?>][]">
+                                                <option value="">Select FileType</option>
+                                                <option value="Input file">Input file</option>
+                                                <option value="Working file">Working file</option>
+                                                <option value="File  Report">Final Report</option>
+                                            </select>
+                                            
+                                        </div></td><?php } ?>
                         </tr>
                     <?php }
                     ?>
@@ -70,10 +97,45 @@ foreach ($my_tasks as $value) {
 
                         </td>
                         <td style="text-align: center;font-weight: bold;border: 1px solid #E6AD5C;padding: 5px 4px;line-height: 1.42857143;vertical-align: top;">Total Efforts : <?= $total_efforts . " Hours" ?></td>
+                        <?php if($landingPage){?>
+                        <td><button type="submit" class="btn btn-success btn-md action" id="action_sub">
+                                    <span class="glyphicon glyphicon-oppy-disk"></span> Save Work Description
+                                </button>
+                        </td>
+                        <?php } ?>
                     </tr>
                 </table>
             </td>
         </tr>
     </table>
-<?php }
-?>
+<?php } ?>
+</form> 
+<script>
+$(document).on("ready", function () {
+            $("#daily_task_form").on("submit", function (e) {
+                e.preventDefault();
+                $.ajax({
+                    data: new FormData(this),
+                    dataType: 'json',
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    url: $(this).attr("action"),
+                    method: "POST",
+                    success: function (result) {
+                        console.log(result);
+                        if (result.succ) {
+                            swal({
+                                title: "Done!",
+                                text: result._err_codes,
+                                type: "success",
+                                timer: 1000
+                            });  
+                        } else {
+                            sweetAlert("Oops...", result._err_codes, "error");
+                        }
+                    }
+                });
+            });
+        });
+</script>

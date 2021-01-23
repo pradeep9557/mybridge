@@ -15,7 +15,7 @@
                 </span>
                  <?php } ?>
                 <p style='margin: 0;color: white;'><?php echo $msg;  ?></p>
-                <form action="http://mybridge.local/tms/manage_tasks/upload_files" id="daily_task_form" enctype="multipart/form-data" method="post" accept-charset="utf-8">  
+                <!--<form action="http://mybridge.local/tms/manage_tasks/upload_files" id="daily_task_form" enctype="multipart/form-data" method="post" accept-charset="utf-8">  
                     <div class="row bottom_gap">
                         <div class="col-lg-12 col-md-12 col-sm-12"> 
                             <div class="row">
@@ -49,10 +49,10 @@
                             </div>
                         </div>
                     </div>
-                </form> 
+                </form> -->
             </div>
         </div>
-        <script>
+        <!--<script>
         $(document).ready(function(){
             $('.addattachment').click(function(){
                 console.log($('#attachment').length);
@@ -88,7 +88,7 @@
                 });
             });
         });
-        </script>
+        </script>-->
         <div style="font-family: verdana;overflow: hidden;height: 50px;line-height: 50px;color: rgba(255,255,255,0.8);background-color: rgba(238, 110, 115, 0.85);">
             <div style="font-family: verdana;width: 95%;margin: 0 auto;color:white">&copy;<?php echo date('Y')?> <?php echo SITE_NAME ?><br>
                 You can manage notification via click here <a href="<?php echo base_url(isset($sender_email)?$sender_email:"") ?>">Unsubscribe</a>

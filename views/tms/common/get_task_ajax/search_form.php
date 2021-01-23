@@ -795,7 +795,6 @@
                                             var $ref = global_reassign_val = $(this);
                                             $('.whom_instr').empty();
                                             preloader.on();
-//                            console.log($ref.attr("key"));
                                             setTimeout(function () {
                                                 $.ajax({
                                                     url: get_base_url() + "tms/manage_tasks/reassign_sub_task_data",

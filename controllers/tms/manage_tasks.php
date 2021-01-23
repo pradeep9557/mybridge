@@ -269,15 +269,18 @@ class manage_tasks extends CI_Controller {
 //  redirect(base_url() . "tms/manage_tasks/index/" . $result['id'] . "/" . ($result['succ'] ? "0/" . $result['_err_codes'] : "1/" . $result['_err_codes']));
     }
     
-    public function send_new_task_create_mail_client(/*$clientid, $task_id*/) {
-        if(!isset($clientid)){
+    public function send_new_task_create_mail_client($clientid, $task_id) {
+        $this->load->model("tms/mail/mailer", 'mailer');
+        /*if(!isset($clientid)){
             $clientid='205';
         }
         if(!isset($task_id)){
             $task_id='20874';
-        }
+        }*/
         $url = base_url() . "tms/manage_tasks/client_landing_page/?".base64_encode('id='.$task_id.'&client_id='.$clientid);
         $data['my_tasks'] = $this->m_task->get_my_tasks(array("tm_id" => $task_id));
+        $data['landingPage'] = false;
+        $formdata['tm_id'] = $task_id;
         $this->load->model("tms/mail/mailer", 'mailer');
         $table_data_html = $this->load->view("tms/manage_tasks/table_for_mail", $data, TRUE);
         $sql = "SELECT P_Email FROM nexgen_employee where Emp_ID='".$clientid."'";
@@ -291,21 +294,19 @@ class manage_tasks extends CI_Controller {
                 . "Below is the detail for the same!!<br><br>" . $table_data_html . " <br><br>Please Click on Below Link to Upload Documents<br><br><a href='".$url."'>".$url."</a><br><br>\n\n\nThanks NexIBMS Team";
         $formdata['heading'] = "New Task Created!!";
         $mailData['message'] = $this->load->view("tms/mail_template/template", $formdata, TRUE);
-        //echo $mailData['message'];
-        $code_sent = $this->mailer->send_html($mailData);
-        //echo $code_sent;
-        //return TRUE;
+        echo $mailData['message'];
     }
 
     public function client_landing_page(){
+        $this->load->model("tms/mail/mailer", 'mailer');
         $argv = $_SERVER['argv'];
         $idString=base64_decode($argv[0]); 
         parse_str($idString, $output);
         $clientid = $output['client_id'];
         $task_id = $output['id'];
-
         $url = base_url() . "tms/manage_tasks/client_landing_page/?".base64_encode('id='.$task_id.'&client_id='.$clientid);
         $data['my_tasks'] = $this->m_task->get_my_tasks(array("tm_id" => $task_id));
+        $data['landingPage'] = true;
         $this->load->model("tms/mail/mailer", 'mailer');
         $table_data_html = $this->load->view("tms/manage_tasks/table_for_mail", $data, TRUE);
         $sql = "SELECT P_Email FROM nexgen_employee where Emp_ID='".$clientid."'";
@@ -324,8 +325,108 @@ class manage_tasks extends CI_Controller {
     }
 
     public function upload_files(){
+        $this->load->model("emp/employee_model");
+        $this->load->model("tms/m_manage_sub_task", "m_sub_task");
         $formdata = $this->input->post(); 
-        $data['my_tasks'] = $this->m_task->get_my_tasks(array("tm_id" => $formdata['tm_code']));
+        //echo "FormData: ";
+        //print_r($formdata);
+        //echo "FILES: ";
+        //print_r($_FILES);
+        if(!empty($_FILES)){
+            $uploaded_data = array();
+            $files = $_FILES['attach_name']['name'];
+            $j=0;
+            foreach ($files as $tstm_id => $value) {
+                //echo $tstm_id.'/';
+                $data = $this->employee_model->get__subtask_record($tstm_id, $formdata['client_id']);
+                $upload_details = $this->m_sub_task->get_upload_detail_data($tstm_id);
+                if (!file_exists(SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] )) {
+
+                    // echo "/uploads/" . $formdata['tm_code']."/".$formdata['ttm_id']."/".$formdata['year']."/".$formdata['month']; exit;
+                    mkdir(SITE_ROOT_PATH . "/uploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] , 0777, true);
+                }
+                if (!file_exists(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name'] . "/" . $data['state']. "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] )) {
+    
+                    // echo "/uploads/" . $formdata['tm_code']."/".$formdata['ttm_id']."/".$formdata['year']."/".$formdata['month']; exit;
+                    mkdir(SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name'] . "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'] , 0777, true);
+                }
+                $config['upload_path'] = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month'];
+                $config['allowed_types'] = 'pdf|png|jpg|gif|jpeg|xls|docs|doc|txt|xlsx|docx';
+                $config['max_size'] = '20480'; // 20MB allowed
+                $this->load->library('upload', $config);
+                $cpt = count($_FILES['attach_name']['name']["$tstm_id"]);
+                for ($i = 0; $i < $cpt; $i++) {
+                    
+                    if (!$_FILES['attach_name']['size']["$tstm_id"][$i] || $_FILES['attach_name']['tmp_name']["$tstm_id"][$i] == "") {
+                        continue;
+                    }
+                    $uploaded_data[$j]['attach_original_name'] = $_FILES['attach_name']['name']["$tstm_id"][$i];
+                    $file_name = str_replace(" ", "", $upload_details['tm_code']) . "_" . $upload_details['tstm_id'] . "_" . rand(100, 99999) . "." . pathinfo($_FILES['attach_name']['name']["$tstm_id"][$i], PATHINFO_EXTENSION);
+                    $source = SITE_ROOT_PATH . "/uploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$file_name;
+                    $destination = SITE_ROOT_PATH . "/tempuploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$file_name;
+                    $_FILES['temp_document_path']['name'] = $file_name;
+                    $_FILES['temp_document_path']['type'] = $_FILES['attach_name']['type']["$tstm_id"][$i];
+                    $_FILES['temp_document_path']['tmp_name'] = $_FILES['attach_name']['tmp_name']["$tstm_id"][$i];
+                    $_FILES['temp_document_path']['error'] = $_FILES['attach_name']['error']["$tstm_id"][$i];
+                    $_FILES['temp_document_path']['size'] = $_FILES['attach_name']['size']["$tstm_id"][$i];
+//                    $this->util_model->printr($_FILES);
+                    if (!$this->upload->do_upload('temp_document_path')) {
+                        $this->db->trans_rollback();
+                        echo json_encode(array("succ" => FALSE, "_err_codes" => array($this->upload->display_errors("", ""))));
+                        die();
+                    }
+                    copy($source, $destination);
+                    $uploaded_data[$j]['attach_name'] = $file_name;
+                    $uploaded_data[$j]['link'] = "tempuploads/" . $data['clint_name']. "/" . $data['state'] . "/" . $data['task_code'] . "/" . $data['year'] . "/" . $data['month']."/".$file_name;
+                    $uploaded_data[$j]['table_id'] = $tstm_id;
+                    $uploaded_data[$j]['file_type'] = $formdata['fileType']["$tstm_id"][0];
+                    $uploaded_data[$j] = $this->util_model->add_common_fields($uploaded_data[$j]); 
+                    $j=$j+1;
+                }
+                if (!empty($uploaded_data['upload_errors'])) {
+                    echo json_encode(array("succ" => FALSE, "_err_codes" => array("ErrorCode #10092016_1202")));
+                    die();
+                }
+            }
+            if (empty($uploaded_data['upload_errors']) && !empty($uploaded_data)) {
+                //print_r($uploaded_data);
+                //$result = $this->m_sub_task->attach_comment_docs($uploaded_data); 
+                foreach ($uploaded_data as $k => $value) {
+                    $arr1 = array(
+                        'attach_original_name' => $value['attach_original_name'],
+                        'attach_name' => $value['attach_name'],
+                        'link' => $value['link'],
+                        'table_id' => $value['table_id'],
+                        'file_type' => $value['file_type'],
+                        'Add_User' => $value['Add_User'],
+                        'Add_DateTime' => $value['Add_DateTime'],
+                    );
+                    $this->db->insert('nexgen_task_attachments', $arr1);
+                    if ($this->db->affected_rows() > 0) {
+                        $arr = array(
+                        'user_id' => $value['Add_User'],
+                        'tm_id' => $formdata['tm_code'],
+                        'file_name' => $value['attach_name'],
+                        'link' => $value['link'],
+                        'state_name' => $data['state'],
+                        'date' => $value['Add_DateTime'],
+                        'status' => 0,
+                        'attachment_id' => $this->db->insert_id(),
+                        );
+                        $this->db->insert('nexgen_attach_file', $arr);
+                    }
+                }
+                echo json_encode(array("succ" => TRUE, "_err_codes" => array('Data Uploaded Success')));
+                die();
+                
+            }else{
+                $this->db->trans_rollback();
+                echo json_encode(array("succ" => FALSE, "_err_codes" => array("Some Error Occured!!")));
+                die();
+            }
+
+        }
+        /*$data['my_tasks'] = $this->m_task->get_my_tasks(array("tm_id" => $formdata['tm_code']));
         $state_id = $data['my_tasks'][0]['state_id'];
         $sql = "SELECT `name` FROM nexgen_cstates where state_id='".$state_id."'";
         $query = $this->db->query($sql);
@@ -390,7 +491,7 @@ class manage_tasks extends CI_Controller {
                         'date' => $value['Add_DateTime'],
                         'status' => 0,
                         'attachment_id' => 0,
-                        'description'=>$value['description'],
+                        //'description'=>$value['description'],
                     );
                     $this->db->insert('nexgen_attach_file', $arr);
                 }
@@ -401,7 +502,7 @@ class manage_tasks extends CI_Controller {
                 echo json_encode(array("succ" => FALSE, "_err_codes" => array("Some Error Occured!!")));
                 die();
             }
-        }
+        }*/
     }
 
     public function replicate_task($task_master_data, $filter_data) {

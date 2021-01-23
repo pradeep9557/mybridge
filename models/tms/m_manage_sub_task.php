@@ -336,7 +336,7 @@ class m_manage_sub_task extends CI_Model {
         return $this->db->get()->row_array();
     }
 
-    public function attach_comment_docs($filter_data) {
+    public function attach_comment_docs($filter_data) { 
         $this->db->insert_batch(DB_PREFIX . "task_attachments", $filter_data);
         
         if ($this->db->affected_rows() > 0) {
